@@ -14,13 +14,15 @@
 ### 🏠 [Homepage](https://clp.is/projects/recollection)
 
 ## Install
+- Add to your `Cargo.toml` dependencies:
 
-```sh
-cargo install recollection
+```toml
+[dependencies]
+recollection = "^0.1"
 ```
 
 ## Usage
-
+- Example for graph (currently the only implemented, or part-implemented, data structure)
 ```rust
 use recollection::Graph;
 
@@ -35,8 +37,12 @@ g.remove_edge(p1_p2);
 g.remove(p1);
 ```
 
-## Author
+## Further Info
+- Crate can be found on [crates.io](crates.io/crates/recollection) or [lib.rs](lib.rs/crates/recollection).
+- Documentation can be found on [docs.rs](https://docs.rs/recollection)
 
+
+### Author
 👤 **Chris P**
 
 * Website: https://clp.is

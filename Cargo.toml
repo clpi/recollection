@@ -27,3 +27,6 @@ path = "tests/data/graph.rs"
 
 [dependencies]
 serde = { version = "1.0.126", features = ["derive"] }
+
+[dev-dependencies]
+criterion = "0.3.5"

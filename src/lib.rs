@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 //! The purpose of this crate is to provide implementations of
 //! data structures & algorithms not in the standard library,
 //! and to provide implementations of those already in the library
