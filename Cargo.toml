@@ -6,7 +6,8 @@ description = "implementations and reimplementations of common data structures a
 keywords = ["algorithms"]
 license = "MIT"
 homepage = "https://clp.is/projects/recollection"
-documentation  = "https://clp.is/projects/recollection"
+repository = "https://github.com/clpi/recollection"
+documentation  = "https://docs.rs/recollection"
 readme = "README.md"
 
 [lib]

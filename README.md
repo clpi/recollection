@@ -6,9 +6,6 @@
   <a href="#" target="_blank">
     <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
   </a>
-  <a href="https://twitter.com/clp\_is" target="_blank">
-    <img alt="Twitter: clp\_is" src="https://img.shields.io/twitter/follow/clp\_is.svg?style=social" />
-  </a>
 </p>
 
 > implementations and re-implementations of common data structures and algorithms in rust
@@ -20,6 +17,22 @@
 
 ```sh
 cargo install recollection
+```
+
+## Usage
+
+```rust
+use recollection::Graph;
+
+let g = Graph::<&'static str, usize>::new();
+
+let p1 = g.add("Person 1");
+let p2 = g.add("Person 2");
+
+let p1_p2 = g.add_edge(p1, p2, 4 as usize);
+
+g.remove_edge(p1_p2);
+g.remove(p1);
 ```
 
 ## Author
