@@ -1,19 +1,28 @@
 [package]
-name = "icha-lib"
+name = "recollection"
 version = "0.1.0"
 edition = "2018"
+description = "implementations and reimplementations of common data structures and algorithms"
+keywords = ["algorithms"]
+license = "MIT"
+homepage = "https://clp.is/projects/recollection"
+documentation  = "https://clp.is/projects/recollection"
+readme = "https://clp.is/projects/recollection"
 
 [lib]
-name = "icha_lib"
+name = "recollection"
 path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+default = ["graph", "chain"]
+graph = []
+chain = []
+
+[[test]]
+name = "graph"
+path = "tests/data/graph.rs"
+
 
 [dependencies]
-dirs = "3.0.2"
 serde = { version = "1.0.126", features = ["derive"] }
-toml = "0.5.8"
-
-[workspace]
-members = [ "proto"]

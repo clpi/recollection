@@ -251,7 +251,7 @@ impl Direction {
         Direction::Outgoing
     }
 }
-pub struct Net<N, E>
+pub struct Graph<N, E>
 where
     N: Clone,
     E: Clone, 
@@ -260,7 +260,7 @@ where
     nodes: Vec<Node<N>>,
     directed: bool,
 }
-impl<N, E> Default for Net<N, E> 
+impl<N, E> Default for Graph<N, E> 
 where
     N: Clone,
     E: Clone
@@ -274,7 +274,7 @@ where
     }
 }
 
-impl<N, E> Net<N, E>
+impl<N, E> Graph<N, E>
 where
     N: Clone + fmt::Debug,
     E: Clone + fmt::Debug 
@@ -701,7 +701,7 @@ pub struct EdgeRef<'a, E: 'a> {
 impl WalkNeighbors {
 
     pub fn next<N, E>(&mut self,
-        g: &Net<N, E>) -> Option<(EdgeIx, NodeIx)>  
+        g: &Graph<N, E>) -> Option<(EdgeIx, NodeIx)>  
     where
         N: Clone, E: Clone
     {
@@ -722,7 +722,7 @@ impl WalkNeighbors {
         }
         None
     }
-    pub fn next_node<N, E>(&mut self, g: &Net<N, E>)
+    pub fn next_node<N, E>(&mut self, g: &Graph<N, E>)
         -> Option<NodeIx> 
     where
         N: Clone, E: Clone
@@ -730,7 +730,7 @@ impl WalkNeighbors {
         self.next(g).map(|t| t.1)
     }
 
-    pub fn next_edge<N, E>(&mut self, g: &Net<N, E>)
+    pub fn next_edge<N, E>(&mut self, g: &Graph<N, E>)
         -> Option<NodeIx> 
     where
         N: Clone, E: Clone
@@ -744,23 +744,19 @@ impl WalkNeighbors {
     } */
 }
 
-/* impl<'a, E> Iterator for Neighbors<'a, E> {
+impl<'a, E> Iterator for Neighbors<'a, E> 
+where
+    E: Clone 
+{
     type Item = NodeIx;
 
     fn next(&mut self) -> Option<NodeIx> {
-        match self.edges.get(&self.next_out) {
-            Some(edge) => {
-                self.next_outgoing = edge
-            }
-
+        match self.edges.get(self.next.out()) {
+            Some(edge) => { unimplemented!() }
+            None => { unimplemented!() }
         }
-        if let Some(ed) = self.edges.get(&self.next_out) {
-            self.next_out = ed.Err
-
-        }
-
     }
-} */
+}
 
 enum Pair<T> {
     Both(T, T),
@@ -787,14 +783,14 @@ fn index_twice<T>(slc: &mut [T], a: usize, b: usize) -> Pair<&mut T> {
     }
 }
 
-impl<N, E> fmt::Debug for Net<N, E> 
+impl<N, E> fmt::Debug for Graph<N, E> 
 where
     N: fmt::Debug + Clone,
     E: fmt::Debug + Clone,
 
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut fmt_struct = f.debug_struct("Net");
+        let mut fmt_struct = f.debug_struct("Graph");
         fmt_struct.field(&"# nodes", &self.node_count());
         fmt_struct.field(&"# edges", &self.edge_count());
         if size_of::<N>() != 0 && self.edge_count() > 0 {

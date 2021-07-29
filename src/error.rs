@@ -1,15 +1,15 @@
 use std::{fmt, error, io};
 
-pub type IchaResult<T> = Result<T, IchaError>;
+pub type RecolResult<T> = Result<T, RecolError>;
 
 #[derive(Debug)]
-pub enum IchaError {
+pub enum RecolError {
     IoError(io::Error),
     GeneralError(String),
 }
-impl error::Error for IchaError {}
+impl error::Error for RecolError {}
 
-impl fmt::Display for IchaError {
+impl fmt::Display for RecolError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::IoError(e) => e.fmt(f),
@@ -17,7 +17,7 @@ impl fmt::Display for IchaError {
         }
     }
 }
-impl From<io::Error> for IchaError {
+impl From<io::Error> for RecolError {
     fn from(e: io::Error) -> Self {
         Self::IoError(e)
     }
