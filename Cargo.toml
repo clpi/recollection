@@ -1,0 +1,19 @@
+[package]
+name = "icha-lib"
+version = "0.1.0"
+edition = "2018"
+
+[lib]
+name = "icha_lib"
+path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+dirs = "3.0.2"
+serde = { version = "1.0.126", features = ["derive"] }
+toml = "0.5.8"
+
+[workspace]
+members = [ "proto"]
