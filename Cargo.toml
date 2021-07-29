@@ -7,7 +7,7 @@ keywords = ["algorithms"]
 license = "MIT"
 homepage = "https://clp.is/projects/recollection"
 documentation  = "https://clp.is/projects/recollection"
-readme = "https://clp.is/projects/recollection"
+readme = "README.md"
 
 [lib]
 name = "recollection"
