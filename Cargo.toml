@@ -1,6 +1,6 @@
 [package]
 name = "recollection"
-version = "0.1.0"
+version = "0.1.1-beta.0"
 edition = "2018"
 description = "implementations and reimplementations of common data structures and algorithms, and other personally commonly used utilities"
 keywords = ["algorithms"]
