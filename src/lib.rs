@@ -5,6 +5,18 @@
 //! Intended for personal use in projects developed by me,
 //! but anyone is free to use should they find it useful.
 //!
+//! Currently, only the graph data structure is (kind of)
+//! somewhat implemented. Very much so a work in progress!
+//! ```rust
+//! use recollection::data::{Graph, Node, Edge};
+//! let mut g = Graph::<String, usize>::new_directed();
+//! let n1: usize = g.add("First node!")?;
+//! let n2: usize = g.add("Second node!")?;
+//! let e1: Edge<usize> = g.add_edge(n1, n2, 10)?;
+//! assert_eq!(g.node_count(), 2);
+//! assert_eq!(g.edge_count(), 1);
+//!
+//! ````
 pub mod data;
 pub mod error;
 pub mod prelude;

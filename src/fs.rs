@@ -1,5 +1,7 @@
+//! Module for handling filesystem utility command primarily.
+//! Mostly a matter of convenience for future projects.
+//!
 use std::{env, fs::{self, DirEntry, ReadDir}, io::{self, prelude::*}, path::PathBuf};
-use rand::{distributions::Alphanumeric, Rng, thread_rng};
 use super::{RecolError, RecolResult};
 
 pub fn pwd() -> RecolResult<PathBuf> {
@@ -18,6 +20,16 @@ pub fn ls() -> RecolResult<()> {
     }
     Ok(())
 }
+pub fn search_file<P: Into<PathBuf>>(path: P, inp: &str) -> RecolResult<Vec<String>> {
+    let f = path.into();
+    let qu = fs::read_to_string(f)?;
+    let r = qu.lines()
+        .filter(|l| l.contains(inp))
+        .map(|s| s.to_string());
+    let r = r.collect::<Vec<String>>();
+    Ok(r)
+}
+
 pub fn write_to_file<B>(content: B, path: &str) -> RecolResult<()> 
 where
     B: Into<Vec<u8>> 

@@ -1,3 +1,6 @@
+//! The error module which exposes differnt error handling
+//! enum members.
+//!
 use std::{fmt, error, io};
 
 pub type RecolResult<T> = Result<T, RecolError>;
