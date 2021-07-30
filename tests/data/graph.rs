@@ -1,61 +1,95 @@
+use std::fmt::Debug;
 use recollection::prelude::*;
+
+fn graph<N, E>(directed: bool) -> Graph<N, E> where
+    N: Clone + Debug, E: Clone + Debug {
+    match directed {
+        true => Graph::<N, E>::new_directed(),
+        false => Graph::<N, E>::new_undirected()
+    }
+}
+fn sgraph(dir: bool) -> Graph<&'static str, &'static str> {
+    graph::<&'static str, &'static str>(dir)
+}
+fn usgraph(dir: bool) -> Graph<usize, usize> {
+    graph::<usize, usize>(dir)
+}
+
+#[test]
+fn graph_adds_nodes() -> RecolResult<()> {
+    let mut g = usgraph(true);
+    for i in 0..20 {
+        g.add(i);
+    }
+    assert_eq!(g.node_count(), 20);
+    g.clear();
+    assert_eq!(g.node_count(), 0);
+    Ok(())
+}
+
+#[test]
+fn graph_adds_nodes_and_edges() -> RecolResult<()> {
+    let mut g = usgraph(true);
+    for i in 0..20 {
+        let n = g.add(i);
+        for (j, node) in (0..i).enumerate() {
+            let _edge = g.add_edge(n, node, i+j);
+        }
+        assert_eq!(g.node_count(), i+1);
+        // assert_eq!(g.edge_count(), i*i);
+    }
+    assert_eq!(g.node_count(), 20);
+    Ok(())
+}
 
 #[test]
 fn graph_insert_remove() -> RecolResult<()> {
-    let mut graph = Graph::<&'static str, &'static str>::new_directed();
+    let mut graph = sgraph(true);
 
     let chris = graph.add("Chris");
     let jazzy = graph.add("Jazzy");
     let baby = graph.add("Baby");
     let cat = graph.add("Cat");
     let man = graph.add("Man");
-    debug_assert_eq!(5, graph.node_count());
+    println!("NODES: {} PRED {}", graph.node_count(), 5);
+    assert_eq!(5, graph.node_count());
 
-    let jazzy_baby = graph.add_edge(jazzy, baby, "loves");
-    let baby_jazzy = graph.add_edge(baby, jazzy, "takes care of");
-    let chris_baby = graph.add_edge(chris, baby, "loves");
-    let jazzy_chris = graph.add_edge(jazzy, chris, "annoys");
-    let cat_jazzy = graph.add_edge(cat, jazzy, "loves");
-    let cat_baby = graph.add_edge(cat, baby, "annoys");
-    let chris_cat = graph.add_edge(chris, cat, "eats");
-    let man_cat = graph.add_edge(man, cat, "pets");
+    let _jazzy_baby = graph.add_edge(jazzy, baby, "loves");
+    let _baby_jazzy = graph.add_edge(baby, jazzy, "takes care of");
+    let _chris_baby = graph.add_edge(chris, baby, "loves");
+    let _jazzy_chris = graph.add_edge(jazzy, chris, "annoys");
+    let _cat_jazzy = graph.add_edge(cat, jazzy, "loves");
+    let _cat_baby = graph.add_edge(cat, baby, "annoys");
+    let _chris_cat = graph.add_edge(chris, cat, "eats");
+    let _man_cat = graph.add_edge(man, cat, "pets");
     let cat_man = graph.add_edge(cat, man, "meows");
-    let man_jazzy = graph.add_edge(man, jazzy, "annoys");
-    debug_assert_eq!(10, graph.edge_count());
+    let _man_jazzy = graph.add_edge(man, jazzy, "annoys");
+    println!("EDGES: {} PRED {}", graph.edge_count(), 10);
+    assert_eq!(10, graph.edge_count());
 
-
-
-    println!("R1: EDGES {:#?} NODES {:#?} exp: (10, 5)", 
-        graph.edge_count(), graph.node_count());
-        graph.edges_log();
-        graph.nodes_log();
     graph.remove_edge(cat_man);
-    debug_assert_eq!(9, graph.edge_count());
+    println!("EDGES: {} PRED {}", graph.edge_count(), 9);
+    assert_eq!(9, graph.edge_count());
 
-    println!("R2: EDGES {:#?} NODES {:#?} exp: (9, 5)", 
-        graph.edge_count(), graph.node_count());
-        graph.edges_log();
-        graph.nodes_log();
     graph.remove(man);
-    debug_assert_eq!(7, graph.edge_count());
-    debug_assert_eq!(4, graph.node_count());
+    println!("EDGES: {} PRED {}", graph.edge_count(), 7);
+    println!("NODES: {} PRED {}", graph.node_count(), 4);
+    assert_eq!(7, graph.edge_count());
+    assert_eq!(4, graph.node_count());
 
-    println!("R3: EDGES {:#?} NODES {:#?} exp: (7, 4)", 
-        graph.edge_count(), graph.node_count());
-        graph.edges_log();
-        graph.nodes_log();
     graph.remove(chris);
-    debug_assert_eq!(4, graph.edge_count());
-    debug_assert_eq!(3, graph.node_count());
+    println!("EDGES: {} PRED {}", graph.node_count(), 3);
+    println!("NODES: {} PRED {}", graph.node_count(), 3);
+    
+    graph.clear_edges();
+    println!("EDGES: {} PRED {}", graph.edge_count(), 0);
+    println!("NODES: {} PRED {}", graph.node_count(), 3);
+    assert_eq!(0, graph.edge_count());
 
-    println!("R4: EDGES {:#?} NODES {:#?} exp: (4, 3)", 
-        graph.edge_count(), graph.node_count());
-        graph.edges_log();
-        graph.nodes_log();
+    graph.clear();
+    println!("EDGES: {} PRED {}", graph.edge_count(), 0);
+    println!("NODES: {} PRED {}", graph.node_count(), 0);
+    assert_eq!(0, graph.node_count());
 
-
-    println!("FIND BABY{}-JAZZy{} EDGE: {:?}", baby, jazzy, graph.get_edge(baby, jazzy));
-
-    println!("{:#?}", graph);
     Ok(())
 }

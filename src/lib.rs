@@ -1,4 +1,3 @@
-#![forbid(unsafe_code)]
 //! The purpose of this crate is to provide implementations of
 //! data structures & algorithms not in the standard library,
 //! and to provide implementations of those already in the library
@@ -9,6 +8,12 @@
 pub mod data;
 pub mod error;
 pub mod prelude;
+#[cfg(feature = "fs")]
+pub mod fs;
+#[cfg(feature = "config")]
+pub mod config;
+#[cfg(feature = "channel")]
+pub mod channel;
 
 pub use error::{RecolError, RecolResult};
 

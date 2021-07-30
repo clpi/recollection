@@ -2,7 +2,7 @@
 name = "recollection"
 version = "0.1.0"
 edition = "2018"
-description = "implementations and reimplementations of common data structures and algorithms"
+description = "implementations and reimplementations of common data structures and algorithms, and other personally commonly used utilities"
 keywords = ["algorithms"]
 license = "MIT"
 homepage = "https://clp.is/projects/recollection"
@@ -15,10 +15,22 @@ name = "recollection"
 path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 
+[[bin]]
+name = "recollection"
+path = "src/bin/main.rs"
+
+[[bench]]
+name = "graph"
+path = "benches/graph/lib.rs"
+harness = false
+
 [features]
-default = ["graph", "chain"]
+default = ["channel", "graph", "chain", "config", "fs"]
 graph = []
 chain = []
+config = []
+fs = []
+channel = []
 
 [[test]]
 name = "graph"
@@ -26,7 +38,10 @@ path = "tests/data/graph.rs"
 
 
 [dependencies]
+rand = "0.8.4"
 serde = { version = "1.0.126", features = ["derive"] }
+serde_json = "1.0.65"
 
 [dev-dependencies]
 criterion = "0.3.5"
+tempfile = "3.2.0"

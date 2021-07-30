@@ -1,0 +1,7 @@
+[alias]
+tt = "test -- --nocapture"
+tw = "watch 'test -- --nocapture"
+r = "run"
+b = "bench"
+c = "check"
+t = "test"

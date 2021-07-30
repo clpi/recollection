@@ -50,21 +50,26 @@ impl EdgeLink {
     fn new(out: EdgeIx, inc: EdgeIx) -> Self {
         Self { outgoing: out, incoming: inc }
     }
-    fn out(&self) -> EdgeIx { self.outgoing }
-    fn inc(&self) -> EdgeIx { self.incoming }
+
+    fn outgoing(&self) -> EdgeIx { self.outgoing }
+
+    fn incoming(&self) -> EdgeIx { self.incoming }
+
     fn set_incoming(&mut self, inc: EdgeIx) {
         self.incoming = inc;
     }
     fn set_outgoing(&mut self, outgoing: EdgeIx) {
         self.outgoing = outgoing;
     }
-    fn set_both(&mut self, src: EdgeIx) {
-        self.incoming = src;
-        self.outgoing = src;
+    fn set_both(&mut self, edge: EdgeIx) {
+        self.incoming = edge;
+        self.outgoing = edge;
     }
-    fn reset_both(&mut self) {
-        self.incoming = EdgeIx::max_value();
-        self.outgoing = EdgeIx::max_value();
+    fn set(&mut self, dir: &Direction, edge: EdgeIx) {
+        match dir {
+            &Direction::Incoming => self.incoming = edge,
+            &Direction::Outgoing => self.outgoing = edge,
+        }
     }
     fn next(&self, dir: &Direction) -> NodeIx {
         match dir {
@@ -80,24 +85,30 @@ impl EdgeLink {
     }
 }
 impl NodeLink {
+
     fn new(src: NodeIx, dest: NodeIx) -> Self {
         Self { src, dest }
     }
+
     fn src(&self) -> NodeIx { self.src }
+
     fn dest(&self) -> NodeIx { self.dest }
+
     fn set_src(&mut self, src: NodeIx) {
         self.src = src;
     }
     fn set_dest(&mut self, dest: NodeIx) {
         self.dest = dest;
     }
-    fn set_both(&mut self, src: NodeIx) {
-        self.src = src;
-        self.dest = src;
+    fn set_both(&mut self, node: NodeIx) {
+        self.src = node;
+        self.dest = node;
     }
-    fn reset_both(&mut self) {
-        self.src = NodeIx::max_value();
-        self.dest = NodeIx::max_value();
+    fn set(&mut self, dir: &Direction, node: NodeIx) {
+        match dir {
+            &Direction::Incoming => self.src = node,
+            &Direction::Outgoing => self.dest = node,
+        }
     }
 
     fn next(&self, dir: &Direction) -> NodeIx {
@@ -163,9 +174,17 @@ where
         }
     }
     #[inline]
-    pub fn a(self) -> NodeIx { self.node.src }
+    pub fn src(self) -> NodeIx { self.node.src }
+
     #[inline]
-    pub fn b(self) -> NodeIx { self.node.dest }
+    pub fn dest(self) -> NodeIx { self.node.dest }
+
+    pub fn is_loop(&self) -> bool {
+        let src = self.node.src;
+        let dest = self.node.dest;
+        src == dest
+    }
+
     #[inline]
     pub fn node(&self, dir: &Direction) -> NodeIx {
         match dir {
@@ -176,8 +195,11 @@ where
 }
 pub trait Linked {
     fn next_in(&self) -> EdgeIx;
+
     fn next_in_mut(&mut self) -> &mut EdgeIx;
+
     fn next_out(&self) -> EdgeIx;
+
     fn next_out_mut(&mut self) -> &mut EdgeIx;
 
     fn next(&self, dir: &Direction) -> EdgeIx {
@@ -221,7 +243,7 @@ where
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Direction { 
     Outgoing = 0 ,
     Incoming = 1, 
@@ -249,6 +271,13 @@ impl Direction {
 
     pub fn iter() -> Direction {
         Direction::Outgoing
+    }
+
+    pub fn other(&self) -> Direction {
+        match self {
+            &Direction::Incoming => Direction::Outgoing,
+            &Direction::Outgoing => Direction::Incoming,
+        }
     }
 }
 pub struct Graph<N, E>
@@ -341,16 +370,16 @@ where
 
     pub fn remove(&mut self, a: NodeIx) -> Option<N> where N: fmt::Debug {
         let n = self.nodes.get(a)?;
-        println!("REMOVING NODE {:?}", &n );
+        // pritln!("REMOVING NODE {:?}", &n );
         // Remove all edges to/from this node
         for dir in Direction::iter() {
-            println!("REMOVING {:?} NODES", &dir);
+            // println!("REMOVING {:?} NODES", &dir);
             loop {
                 let next = self.nodes[a].next(&dir);
-                println!("CHEKING {}", &next);
+                // println!("CHEKING {}", &next);
                 if next == EdgeIx::max_value() { break;}
                 let ret = self.remove_edge(next);
-                println!("REMOVING CONN TO NODE IX {}: {}", a, next);
+                // println!("REMOVING CONN TO NODE IX {}: {}", a, next);
                 let _ = ret;
             }
         }
@@ -359,7 +388,6 @@ where
             None => return Some(node.weight),
             Some(e) => &e.edges,
         };
-        let old_ix = NodeIx::from(self.nodes.len());
         let new_ix = a;
         for dir in Direction::iter() { let mut edges = EdgesMut::new(&mut self.edges, swap_edges.next(&dir), dir);
             while let Some(curr) = edges.next_edge() {
@@ -370,12 +398,12 @@ where
     }
 
     pub fn remove_edge(&mut self, eix: EdgeIx) -> Option<E> {
-        let (e, e_node, e_next) = match self.edges.get_mut(eix) {
+        let (_e, e_node, e_next) = match self.edges.get_mut(eix) {
             None => return None,
             Some(e) => (
                 e.clone(),
                 NodeLink::new(e.node.src(), e.node.dest()),
-                EdgeLink::new(e.next.out(), e.next.inc()),
+                EdgeLink::new(e.next.outgoing(), e.next.incoming()),
             )
         };
         self._change_edge_links(e_node, e_next, eix);
@@ -439,7 +467,7 @@ where
     }
     pub fn get_edge(&self, a: NodeIx, b: NodeIx) -> Option<EdgeIx> where N: fmt::Debug {
         if let Some(n) = self.nodes.get(a) {
-            println!("FOUND NODE {:?} LOOKING FOR {:?}", n, b);
+            // println!("FOUND NODE {:?} LOOKING FOR {:?}", n, b);
             if !self.directed {
                 if let Some((ix, _dir)) = self._edge_from_node_undir(n, b) {
                     return Some(ix);
@@ -461,7 +489,7 @@ where
         let (mut next_in, mut next_out) = (n.next_in(), n.next_out());
         let edges = &mut self.edges.clone();
         while let Some(e) = edges.get_mut(next_in) {
-            if e.next_out() == b {
+            if e.next.outgoing() == b {
                 return Some((next_in, Direction::Outgoing))
             }
             next_in = e.next_in();
@@ -470,7 +498,7 @@ where
             if e.next_in() == b {
                 return Some((next_out, Direction::Incoming))
             }
-            next_out = e.next_out();
+            next_out = e.next.outgoing();
         }
         return None;
     }
@@ -533,7 +561,7 @@ where
     pub fn edges_log(&self) -> () where E: fmt::Debug {
         let mut out = String::from("");
         for e in &self.edges {
-        let (outg, inco) = match (&e.next.out(), &e.next.inc()) {
+        let (outg, inco) = match (&e.next.outgoing(), &e.next.incoming()) {
             (&EdgeIx::MAX, &EdgeIx::MAX) => ("NONE".to_string(), "NONE".to_string()),
             (&EdgeIx::MAX, inc) => ("NONE".to_string(), inc.to_string()),
             (out, &EdgeIx::MAX) => (out.to_string(), "NONE".to_string()),
@@ -548,7 +576,7 @@ where
     pub fn nodes_log(&self) -> () where N: fmt::Debug {
         let mut out = String::from("");
         for n in &self.nodes {
-            let (outg, inco) = match (&n.edges.out(), &n.edges.inc()) {
+            let (outg, inco) = match (&n.edges.outgoing(), &n.edges.incoming()) {
                 (&EdgeIx::MAX, &EdgeIx::MAX) => ("NONE".to_string(), "NONE".to_string()),
                 (&EdgeIx::MAX, inc) => ("NONE".to_string(), inc.to_string()),
                 (out, &EdgeIx::MAX) => (out.to_string(), "NONE".to_string()),
@@ -584,6 +612,19 @@ where
                 } else { Some(eix) }
             }
         }
+    }
+
+    pub fn shrink_to_fit(&mut self) {
+        self.nodes.shrink_to_fit();
+        self.edges.shrink_to_fit();
+    }
+
+    pub fn shrink_to_fit_edges(&mut self) {
+        self.edges.shrink_to_fit();
+    }
+
+    pub fn shrink_to_fit_nodes(&mut self) {
+        self.nodes.shrink_to_fit();
     }
 
     pub fn nodes(&self) -> &[Node<N>] {
@@ -713,9 +754,9 @@ impl WalkNeighbors {
                 return Some((ed, e.node.next(&Direction::Incoming)));
             }
         }
-        while let Some(edge) = g.edges.get(self.next.inc()) {
-            let ed = self.next.inc();
-            self.next.set_incoming(edge.next_out());
+        while let Some(edge) = g.edges.get(self.next.incoming()) {
+            let ed = self.next.incoming();
+            self.next.set_incoming(edge.next.outgoing());
             if edge.node(&Direction::Incoming) != self.src {
                 return Some((ed, edge.node(&Direction::Outgoing)));
             }
@@ -751,10 +792,27 @@ where
     type Item = NodeIx;
 
     fn next(&mut self) -> Option<NodeIx> {
-        match self.edges.get(self.next.out()) {
-            Some(edge) => { unimplemented!() }
-            None => { unimplemented!() }
+        for dir in Direction::iter() {
+            if dir == Direction::Incoming {
+                while let Some(ed) = self.edges.get(self.next.incoming()) {
+                    self.next.set_incoming(ed.next_in());
+                    let n = ed.node.next(&Direction::Outgoing);
+                    if n != self.src {
+                        return Some(n);
+                    }
+                }
+
+            }
+            match self.edges.get(self.next.next(&dir)) {
+                None => {},
+                Some(ed) => {
+                    self.next.set(&dir, ed.node.next(&dir));
+                    return Some(ed.node.next(&dir));
+                }
+
+            }
         }
+    None 
     }
 }
 
