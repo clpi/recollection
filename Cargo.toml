@@ -2,7 +2,7 @@
 name = "recollection"
 version = "0.1.1-beta.0"
 edition = "2018"
-description = "implementations and reimplementations of common data structures and algorithms, and other personally commonly used utilities"
+description = "primary a miscellaneous assortment of useful methods and data types. implementations and reimplementations of common data structures and algorithms, and other personally commonly used utilities"
 keywords = ["algorithms"]
 license = "MIT"
 homepage = "https://clp.is/projects/recollection"
@@ -25,12 +25,13 @@ path = "benches/graph/lib.rs"
 harness = false
 
 [features]
-default = ["channel", "graph", "chain", "config", "fs"]
+default = ["channel", "graph", "chain", "config", "fs", "derive"]
 graph = []
 chain = []
 config = []
 fs = []
 channel = []
+derive = ["rc-derive"]
 
 [[test]]
 name = "graph"
@@ -41,6 +42,7 @@ path = "tests/data/graph.rs"
 rand = "0.8.4"
 serde = { version = "1.0.126", features = ["derive"] }
 serde_json = "1.0.65"
+rc-derive = { path = "./rc-derive", optional = true }
 
 [dev-dependencies]
 criterion = "0.3.5"
