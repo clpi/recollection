@@ -903,3 +903,28 @@ impl fmt::Debug for NodeLink {
                 &self.src, &self.dest))
     }
 }
+
+#[cfg(test)]
+mod test {
+
+    use super::*;
+    use crate::RecolResult;
+
+    #[test]
+    fn add_ok() -> RecolResult<()> {
+        let mut g = Graph::<String, usize>::new_directed();
+        g.add("Chris".into());
+        debug_assert_eq!(1, g.node_count());
+        Ok(())
+    }
+
+    #[test]
+    fn rm_ok() -> RecolResult<()> {
+        let mut g = Graph::<String, usize>::new_directed();
+        let chris = g.add("Chris".into());
+        g.remove(chris);
+        debug_assert_eq!(0, g.node_count());
+        Ok(())
+    }
+
+}
