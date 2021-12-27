@@ -27,6 +27,8 @@ pub mod config;
 #[cfg(feature = "channel")]
 pub mod channel;
 
+#[cfg(feature = "derive")]
+pub use recollection_derive::*;
 pub use error::{RecolError, RecolResult};
 
 pub fn init() -> RecolResult<()> {

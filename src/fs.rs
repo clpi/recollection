@@ -1,28 +1,44 @@
 //! Module for handling filesystem utility command primarily.
 //! Mostly a matter of convenience for future projects.
 //!
-use std::{env, fs::{self, DirEntry, ReadDir}, io::{self, prelude::*}, path::PathBuf};
+use std::{
+    env, 
+    fs::{self, DirEntry, ReadDir}, 
+    io::{self, BufReader, prelude::*}, 
+    path::{Path, PathBuf}
+};
 use super::{RecolError, RecolResult};
 
-pub fn pwd() -> RecolResult<PathBuf> {
-    let p = env::current_dir()?;
-    return Ok(p)
+#[doc = "Wrapper function for the env::current_dir() stdlib function"]
+pub fn cwd() -> RecolResult<PathBuf> {
+    env::current_dir().map_err(|e| RecolError::Io(e))
 }
 
-pub fn cd<P: Into<PathBuf>>(dir: P) -> RecolResult<()> {
-    env::set_current_dir(dir.into())?;
-    return Ok(())
+#[doc = "Simple wrapper function for the std::env::set_current_dir stdlib fn"]
+pub fn cd<P: AsRef<Path>>(directory_path: P) -> RecolResult<()> {
+    env::set_current_dir(directory_path).map_err(|e| RecolError::Io(e))
 }
 
-pub fn ls() -> RecolResult<()> {
-    for d in fs::read_dir(pwd()?) {
-
-    }
-    Ok(())
+#[doc = "Return lines of a file in a buf reader"]
+pub fn lines<P: AsRef<Path>>(file_path: P) -> RecolResult<Vec<String>> {
+    fs::read_to_string(file_path)
+        .map(|s| s.lines().map(|s| s.to_string()).collect())
+        .map_err(|e| RecolError::Io(e))
 }
-pub fn search_file<P: Into<PathBuf>>(path: P, inp: &str) -> RecolResult<Vec<String>> {
-    let f = path.into();
-    let qu = fs::read_to_string(f)?;
+
+#[doc = ""]
+pub fn ls<P: Into<PathBuf>>(dir_path: Option<P>) -> RecolResult<Vec<DirEntry>> {
+    let entries = dir_path.map_or(cwd()?, |p| p.into())
+        .read_dir()
+        .map_err(|e| RecolError::Io(e))?
+        .filter_map(|dir| dir.ok())
+        .collect();
+    Ok(entries)
+}
+
+#[doc = ""]
+pub fn search_file<P: AsRef<Path>>(file_path: P, inp: &str) -> RecolResult<Vec<String>> {
+    let qu = fs::read_to_string(file_path)?;
     let r = qu.lines()
         .filter(|l| l.contains(inp))
         .map(|s| s.to_string());
@@ -30,67 +46,65 @@ pub fn search_file<P: Into<PathBuf>>(path: P, inp: &str) -> RecolResult<Vec<Stri
     Ok(r)
 }
 
-pub fn write_to_file<B>(content: B, path: &str) -> RecolResult<()> 
-where
-    B: Into<Vec<u8>> 
+#[doc = ""]
+pub fn write_to_file<B, P>(path: P, content: B) -> RecolResult<()> 
+where 
+    B: AsRef<[u8]>,
+    P: AsRef<Path>
 {
-    let _ = fs::write(path, content.into())?;
-    Ok(())
+    fs::write(path, content).map_err(|e| RecolError::Io(e))
 }
 
-pub fn rm<P: Into<PathBuf>>(path: P) -> RecolResult<()> {
-    let pb = path.into();
-    if pb.is_file() { fs::remove_file(&pb)?; }
-    else if pb.is_dir() { fs::remove_dir_all(&pb)?; }
-    else { return Err(RecolError::GeneralError("No such file or directory".into())); }
-    Ok(())
-}
-
-pub fn touch<P: Into<PathBuf>>(path: P) -> RecolResult<fs::File> {
-    let pb = path.into();
-    if pb.exists() && pb.is_file() {
-        return Err(RecolError::GeneralError("File already exists".into()));
+#[doc = ""]
+pub fn rm<P: AsRef<Path>>(path: P) -> RecolResult<()> {
+    if !path.as_ref().exists() {
+        return Err(RecolError::Io(io::Error::from(io::ErrorKind::NotFound)));
+    }
+    if path.as_ref().is_file() { 
+        fs::remove_file(path).map_err(|e| RecolError::Io(e))?;
     } else {
-        let file = fs::File::create(&pb)?;
-        return Ok(file);
+        fs::remove_dir_all(path).map_err(|e| RecolError::Io(e))?;
     }
-}
-
-pub fn mkdir<P: Into<PathBuf>>(path: P) -> RecolResult<ReadDir> {
-    let pb = path.into();
-    if pb.exists() && pb.is_dir() {
-        return Err(RecolError::GeneralError("Dir already exists".into()));
-    } else {
-        fs::create_dir_all(&pb)?;
-        let di = fs::read_dir(&pb)?;
-        return Ok(di);
-    }
-}
-
-pub fn cat<P: Into<PathBuf>>(path: P) -> RecolResult<String> {
-    let pb = path.into();
-    Ok(fs::read_to_string(&pb)?
-        .to_string())
-}
-pub fn _lines(path: &str) -> io::Result<std::io::Lines<io::BufReader<fs::File>>> {
-    let file = fs::File::open(path)?;
-    let buf_reader = io::BufReader::new(file);
-    Ok(buf_reader.lines())
-}
-
-fn _append_to_file(path: &str, content: &str) -> io::Result<()> {
-    let file = fs::OpenOptions::new().append(true).open(path)?;
-    let mut buf_writer = io::BufWriter::new(file);
-    buf_writer.write_all(content.as_bytes())?;
     Ok(())
 }
 
+#[doc = ""]
+pub fn touch<P: AsRef<Path>>(path: P) -> RecolResult<fs::File> {
+    if path.as_ref().is_file() {
+        return Err(RecolError::from(io::ErrorKind::AlreadyExists));
+    } 
+    fs::File::create(path).map_err(|e| RecolError::Io(e))
+}
 
-pub fn copy<P: Into<PathBuf>, Q: Into<PathBuf>>(from: P, dest: Q) -> RecolResult<()> {
-    let (src, dest) = (from.into(), dest.into());
-    if !src.exists() {
-        return Err(RecolError::GeneralError("Src file doesn't exists".into()));
-    }
-    fs::copy(&src, &dest)?;
-    Ok(())
+#[doc = ""]
+pub fn mkdir<P: AsRef<Path>>(path: P) -> RecolResult<ReadDir> {
+    if path.as_ref().is_file() {
+        return Err(RecolError::from(io::ErrorKind::AlreadyExists));
+    } 
+    fs::create_dir_all(&path).map_err(|e| RecolError::Io(e))?;
+    fs::read_dir(&path).map_err(|e| RecolError::Io(e))
+}
+
+#[doc = ""]
+pub fn cat<P: AsRef<Path>>(path: P) -> RecolResult<String> {
+    fs::read_to_string(path).map_err(|e| RecolError::Io(e))
+}
+
+#[doc = ""]
+fn append<P: AsRef<Path>, B: AsRef<[u8]>>(path: P, content: B) -> RecolResult<()> {
+    fs::OpenOptions::new()
+        .append(true)
+        .open(path)
+        .map_err(|e| RecolError::Io(e))
+        .map(|f| -> RecolResult<()> { 
+            io::BufWriter::new(f)
+                .write_all(&content.as_ref())
+                .map_err(|e| RecolError::Io(e)) 
+        })?
+}
+
+
+#[doc = ""]
+pub fn copy<P: AsRef<Path>>(from: P, dest: P) -> RecolResult<u64> {
+    fs::copy(from, dest).map_err(|e| RecolError::Io(e))
 }
